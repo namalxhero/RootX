@@ -72,7 +72,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlinx.coroutines.delay
 
-val RootXCyan = Color(0xFF3CC8FF)
+val RootXCyan = Color(0xFF5FB4C8)
 val RootXIce = Color(0xFFBFF0FF)
 
 /** Frosted glass surface: translucent gradient fill and a soft light border. */
@@ -187,8 +187,9 @@ fun XLoader(modifier: Modifier = Modifier, label: String = "Flying in...") {
                     drawOval(Color(0xE6FFFFFF), Offset(x, y), Size(54.dp.toPx(), 13.dp.toPx()))
                     drawOval(Color(0xE6FFFFFF), Offset(x + 14.dp.toPx(), y - 6.dp.toPx()), Size(30.dp.toPx(), 15.dp.toPx()))
                 }
+                val bobPx = bob * 5.dp.toPx()
                 withTransform({
-                    translate(left = w * 0.46f, top = h * 0.62f + bob * 5.dp.toPx())
+                    translate(left = w * 0.46f, top = h * 0.62f + bobPx)
                     rotate(degrees = -14f + bob * 2f, pivot = Offset.Zero)
                 }) {
                     val wing = Path().apply {
@@ -233,9 +234,9 @@ fun XLoader(modifier: Modifier = Modifier, label: String = "Flying in...") {
 
 /** The five anime backgrounds. The chosen one is remembered and drawn behind the whole app. */
 object RootXBg {
-    val drawables = listOf(R.drawable.bg_fireworks, R.drawable.bg_ocean, R.drawable.bg_snow, R.drawable.bg_field, R.drawable.bg_fuji)
-    val names = listOf("Fireworks", "Ocean", "Snow", "Field", "Fuji")
-    private val scrims = listOf(0.25f, 0.3f, 0.3f, 0.5f, 0.35f)
+    val drawables = listOf(R.drawable.bg_ice, R.drawable.bg_fireworks, R.drawable.bg_ocean, R.drawable.bg_snow, R.drawable.bg_field, R.drawable.bg_fuji)
+    val names = listOf("Ice", "Fireworks", "Ocean", "Snow", "Field", "Fuji")
+    private val scrims = listOf(0.18f, 0.25f, 0.3f, 0.3f, 0.5f, 0.35f)
     var index by mutableIntStateOf(0)
     private var loaded = false
 
@@ -283,7 +284,7 @@ fun RootXBackgroundPicker() {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
             RootXBg.drawables.forEachIndexed { i, res ->
                 val sel = RootXBg.index == i
-                val bubble by animateDpAsState(if (sel) 64.dp else 54.dp, label = "bubble")
+                val bubble by animateDpAsState(if (sel) 56.dp else 46.dp, label = "bubble")
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {

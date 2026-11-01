@@ -35,19 +35,19 @@ fun Color.blend(other: Color, ratio: Float): Color {
 }
 
 private val RootXColorScheme = darkColorScheme(
-    primary = Color(0xFF4FD0FF), onPrimary = Color(0xFF00121C),
-    primaryContainer = Color(0xFF123A5C), onPrimaryContainer = Color(0xFFCDF1FF),
-    secondary = Color(0xFF8FE3FF), onSecondary = Color(0xFF00121C),
-    secondaryContainer = Color(0xFF1C3A63), onSecondaryContainer = Color(0xFFD9F4FF),
-    tertiary = Color(0xFFC3A4FF), onTertiary = Color(0xFF1B0F33),
-    tertiaryContainer = Color(0xFF38285F), onTertiaryContainer = Color(0xFFEADFFF),
-    background = Color.Transparent, onBackground = Color(0xFFEEF3FF),
-    surface = Color(0xFF0E1538), onSurface = Color(0xFFEEF3FF),
-    surfaceVariant = Color(0xFF1B2452), onSurfaceVariant = Color(0xFFA9B6DD),
-    surfaceContainerLowest = Color(0xFF0C1232), surfaceContainerLow = Color(0xFF151D47),
-    surfaceContainer = Color(0xFF1A2352), surfaceContainerHigh = Color(0xFF202A5E),
+    primary = Color(0xFF5FB4C8), onPrimary = Color(0xFF00181F),
+    primaryContainer = Color(0xFF123C4A), onPrimaryContainer = Color(0xFFCDEFF6),
+    secondary = Color(0xFF7AA8D6), onSecondary = Color(0xFF001526),
+    secondaryContainer = Color(0xFF1A3550), onSecondaryContainer = Color(0xFFD6E8FA),
+    tertiary = Color(0xFF8FC8D8), onTertiary = Color(0xFF00212A),
+    tertiaryContainer = Color(0xFF1C3F4C), onTertiaryContainer = Color(0xFFD2EEF6),
+    background = Color.Transparent, onBackground = Color(0xFFE6F1F5),
+    surface = Color(0xFF08151F), onSurface = Color(0xFFE6F1F5),
+    surfaceVariant = Color(0xFF122533), onSurfaceVariant = Color(0xFF9DB8C4),
+    surfaceContainerLowest = Color(0xFF061018), surfaceContainerLow = Color(0xFF0C1C28),
+    surfaceContainer = Color(0xFF10222F), surfaceContainerHigh = Color(0xFF162B3A),
     surfaceContainerHighest = Color(0x2EFFFFFF),
-    outline = Color(0xFF4A5A94), outlineVariant = Color(0xFF2A3566),
+    outline = Color(0xFF3C5666), outlineVariant = Color(0xFF22394A),
     error = Color(0xFFFF7B8A), errorContainer = Color(0xFF4A1A2C), onErrorContainer = Color(0xFFFFC2CA)
 )
 

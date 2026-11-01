@@ -916,7 +916,7 @@ private fun BottomBar(
                                         .requiredSize(itemSize + 6.dp)
                                         .background(
                                             brush = androidx.compose.ui.graphics.Brush.radialGradient(
-                                                listOf(Color(0x80FFFFFF), Color(0x1AFFFFFF), Color(0x663CC8FF))
+                                                listOf(Color(0x80FFFFFF), Color(0x1AFFFFFF), Color(0x665FB4C8))
                                             ),
                                             shape = androidx.compose.foundation.shape.CircleShape
                                         )
@@ -945,7 +945,7 @@ private fun BottomBar(
                                 ) {
                                     Icon(
                                         if (isSelected) destination.iconSelected else destination.iconNotSelected,
-                                        stringResource(destination.label),
+                                        soloLabel(destination).ifEmpty { stringResource(destination.label) },
                                         tint = if (isSelected) {
                                             MaterialTheme.colorScheme.primary
                                         } else {
@@ -960,4 +960,13 @@ private fun BottomBar(
             }
         }
     }
+}
+
+
+private fun soloLabel(d: BottomBarDestination): String = when (d) {
+    BottomBarDestination.Home -> "Status"
+    BottomBarDestination.SuperUser -> "Hunters"
+    BottomBarDestination.Module -> "Shadows"
+    BottomBarDestination.Tools -> "Quests"
+    BottomBarDestination.Settings -> "System"
 }

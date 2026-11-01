@@ -96,7 +96,7 @@ fun ToolsScreen(navigator: DestinationsNavigator) {
                 XBoom(Modifier.height(58.dp), mood = XBoomMood.Happy, bob = true)
                 Spacer(Modifier.width(14.dp))
                 Column {
-                    Text("Tools", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                    Text("Quests", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                     Text("RootX extras", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }

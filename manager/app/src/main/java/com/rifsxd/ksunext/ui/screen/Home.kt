@@ -1,5 +1,13 @@
 package com.rifsxd.ksunext.ui.screen
 
+import androidx.compose.foundation.shape.GenericShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
+import com.ramcosta.composedestinations.generated.destinations.ToolsScreenDestination
 import com.rifsxd.ksunext.ui.component.RootXBackdrop
 import com.rifsxd.ksunext.ui.component.XBoom
 import com.rifsxd.ksunext.ui.component.XBoomMood
@@ -180,50 +188,23 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 Natives.isLkmMode
             }
 
-            RootXHero(ksuVersion, lkmMode) {
+            RootXToast(ksuVersion != null)
+            RootXHero(ksuVersion, lkmMode, getSuperuserCount(), getModuleCount()) {
                 navigator.navigate(InstallScreenDestination)
             }
             RootXTiles(lkmMode)
+            RootXQuest {
+                navigator.navigate(ToolsScreenDestination) {
+                    popUpTo(NavGraphs.root.startRoute) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
 
             val homeDestination = BottomBarDestination.entries.firstOrNull()
             val startRoute = homeDestination?.direction?.route
-
-            if (fullFeatured) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        SuperuserCard(
-                            onClick = {
-                                navigator.navigate(SuperUserScreenDestination) {
-                                    popUpTo(NavGraphs.root.startRoute) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        )
-                    }
-
-                    Box(modifier = Modifier.weight(1f)) {
-                        ModuleCard(
-                            onClick = {
-                                navigator.navigate(ModuleScreenDestination) {
-                                    popUpTo(NavGraphs.root.startRoute) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        )
-                    }
-                }
-            }
 
             val currentVersionCode = getManagerVersion(context).second
             val requiresNewKernel = isManager && kernelUAPIVersion != null && managerUAPIVersion > kernelUAPIVersion
@@ -1523,42 +1504,153 @@ private fun WarningCardPreview() {
 }
 
 
+private val HexShape = GenericShape { size, _ ->
+    moveTo(size.width / 2f, 0f)
+    lineTo(size.width, size.height * 0.25f)
+    lineTo(size.width, size.height * 0.75f)
+    lineTo(size.width / 2f, size.height)
+    lineTo(0f, size.height * 0.75f)
+    lineTo(0f, size.height * 0.25f)
+    close()
+}
+
 @Composable
-private fun RootXHero(ksuVersion: Int?, lkmMode: Boolean?, onInstall: () -> Unit) {
+private fun RootXToast(working: Boolean) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .glass(RoundedCornerShape(20.dp))
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Text(
+            "NOTIFICATION",
+            fontSize = 9.sp,
+            letterSpacing = 2.sp,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(Modifier.height(3.dp))
+        Text(
+            if (working) "You have awakened. Root is now active." else "Not awakened yet. Tap the card below to install.",
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
+private fun StatBar(label: String, value: Int, max: Int) {
+    val fraction = (value.toFloat() / max.coerceAtLeast(1)).coerceIn(0.06f, 1f)
+    Column(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(label, fontSize = 9.sp, letterSpacing = 1.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value.toString(), fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.height(4.dp))
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(5.dp)
+                .clip(RoundedCornerShape(5.dp))
+                .background(androidx.compose.ui.graphics.Color(0x1AFFFFFF))
+        ) {
+            Box(
+                Modifier
+                    .fillMaxWidth(fraction)
+                    .height(5.dp)
+                    .background(Brush.horizontalGradient(listOf(androidx.compose.ui.graphics.Color(0xFF5FB4C8), androidx.compose.ui.graphics.Color(0xFF7AA8D6))))
+            )
+        }
+    }
+}
+
+@Composable
+private fun RootXHero(ksuVersion: Int?, lkmMode: Boolean?, hunters: Int, shadows: Int, onInstall: () -> Unit) {
+    val context = LocalContext.current
     val working = ksuVersion != null
+    val level = remember { getManagerVersion(context).first.substringBefore("-") }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .glass(RoundedCornerShape(28.dp))
             .clickable(enabled = !working) { onInstall() }
-            .padding(horizontal = 18.dp, vertical = 16.dp),
+            .padding(14.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            Modifier
+                .width(96.dp)
+                .height(120.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .background(
+                    Brush.verticalGradient(
+                        listOf(androidx.compose.ui.graphics.Color(0x385FB4C8), androidx.compose.ui.graphics.Color(0x590F1220))
+                    )
+                ),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            XBoom(
+                Modifier.height(106.dp),
+                mood = if (working) XBoomMood.Happy else XBoomMood.Scared,
+                blink = false,
+                bob = true
+            )
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    Text("HUNTER STATUS", fontSize = 9.sp, letterSpacing = 2.sp, color = MaterialTheme.colorScheme.primary)
+                    Text("RootX", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                }
+                Box(
+                    Modifier
+                        .width(34.dp)
+                        .height(38.dp)
+                        .clip(HexShape)
+                        .background(
+                            Brush.linearGradient(
+                                if (working) listOf(androidx.compose.ui.graphics.Color(0xFF4A9FB8), androidx.compose.ui.graphics.Color(0xFF3A6FA8))
+                                else listOf(androidx.compose.ui.graphics.Color(0xFF55606A), androidx.compose.ui.graphics.Color(0xFF3A434C))
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(if (working) "S" else "E", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                }
+            }
+            Text(
+                "Root Hunter  ·  Level $level" + (if (lkmMode == true) "  ·  LKM" else ""),
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(10.dp))
+            StatBar("SHADOWS", shadows, maxOf(shadows, 20))
+            Spacer(Modifier.height(8.dp))
+            StatBar("HUNTERS", hunters, maxOf(hunters, 10))
+        }
+    }
+}
+
+@Composable
+private fun RootXQuest(onAccept: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .glass(RoundedCornerShape(26.dp))
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        XBoom(
-            Modifier.height(92.dp),
-            mood = if (working) XBoomMood.Happy else XBoomMood.Scared,
-            blink = false,
-            bob = true
-        )
-        Spacer(Modifier.width(16.dp))
-        Column {
-            Text(
-                text = if (working) "Working" else "Not installed",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = if (working) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-            )
+        Column(Modifier.weight(1f)) {
+            Text("DAILY QUEST", fontSize = 9.sp, letterSpacing = 2.sp, color = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(4.dp))
+            Text("Run the self check", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Text(
-                text = if (working) {
-                    "RootX is active" + (if (lkmMode == true) " (LKM)" else "")
-                } else {
-                    "Tap to install"
-                },
-                style = MaterialTheme.typography.bodyMedium,
+                "Find root traces that apps can see",
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        Spacer(Modifier.width(10.dp))
+        Button(onClick = onAccept) { Text("ACCEPT", fontSize = 11.sp, letterSpacing = 1.sp) }
     }
 }
 

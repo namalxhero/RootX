@@ -44,6 +44,9 @@ import com.rifsxd.ksunext.ui.viewmodel.ModuleViewModel
 @Composable
 fun RootXSettingsSection() {
     val context = LocalContext.current
+    var secureOn by remember {
+        mutableStateOf(context.getSharedPreferences("rootx_security", android.content.Context.MODE_PRIVATE).getBoolean("secure_screen", true))
+    }
     val modVm: ModuleViewModel = viewModel()
     LaunchedEffect(Unit) { if (Natives.isManager) modVm.fetchModuleList() }
 
@@ -107,9 +110,6 @@ fun RootXPinSetupDialog(hasPin: Boolean, onSaved: () -> Unit, onRemoved: () -> U
     var pin1 by remember { mutableStateOf("") }
     var pin2 by remember { mutableStateOf("") }
     var pinError by remember { mutableStateOf("") }
-    var secureOn by remember {
-        mutableStateOf(context.getSharedPreferences("rootx_security", android.content.Context.MODE_PRIVATE).getBoolean("secure_screen", true))
-    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (hasPin) "Change PIN" else "Set a PIN") },

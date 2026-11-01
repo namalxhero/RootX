@@ -1,5 +1,7 @@
 package com.rifsxd.ksunext.ui.screen
 
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Switch
 import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +55,24 @@ fun RootXSettingsSection() {
     )
 
     ListItem(
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        leadingContent = { Icon(Icons.Filled.VisibilityOff, null) },
+        headlineContent = {
+            Text("Block screenshots", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        },
+        supportingContent = { Text("Hides RootX from screenshots, screen recording and the recent apps view") },
+        trailingContent = {
+            Switch(
+                checked = secureOn,
+                onCheckedChange = {
+                    secureOn = it
+                    (context as? com.rifsxd.ksunext.ui.MainActivity)?.setSecureScreen(it)
+                }
+            )
+        }
+    )
+
+    ListItem(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
@@ -87,6 +107,9 @@ fun RootXPinSetupDialog(hasPin: Boolean, onSaved: () -> Unit, onRemoved: () -> U
     var pin1 by remember { mutableStateOf("") }
     var pin2 by remember { mutableStateOf("") }
     var pinError by remember { mutableStateOf("") }
+    var secureOn by remember {
+        mutableStateOf(context.getSharedPreferences("rootx_security", android.content.Context.MODE_PRIVATE).getBoolean("secure_screen", true))
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (hasPin) "Change PIN" else "Set a PIN") },

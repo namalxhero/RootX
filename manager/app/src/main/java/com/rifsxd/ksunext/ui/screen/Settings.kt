@@ -214,6 +214,8 @@ fun SettingScreen(navigator: DestinationsNavigator) {
             SafeModeSection()
             com.rifsxd.ksunext.ui.component.RootXSectionLabel("MODULES")
             PresetsSection()
+            com.rifsxd.ksunext.ui.component.RootXSectionLabel("KERNEL")
+            KernelUpdateSection(navigator)
 
             AppSettingsCard(
                 navigator = navigator,

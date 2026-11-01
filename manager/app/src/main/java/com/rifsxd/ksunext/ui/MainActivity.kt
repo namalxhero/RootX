@@ -225,6 +225,14 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
+        // Security: block screenshots (switchable), ignore touches while covered by another window, hide overlay windows
+        if (getSharedPreferences("rootx_security", MODE_PRIVATE).getBoolean("secure_screen", true)) {
+            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        }
+        window.decorView.filterTouchesWhenObscured = true
+        if (android.os.Build.VERSION.SDK_INT >= 31) {
+            runCatching { window.setHideOverlayWindows(true) }
+        }
 
         lifecycleScope.launch {
             if (superUserViewModel.appList.isEmpty()) {
@@ -586,7 +594,7 @@ class MainActivity : FragmentActivity() {
     private fun AppLockOverlay(amoledMode: Boolean) {
         if (appLockState.value) {
             KernelSUTheme(amoledMode = amoledMode) {
-                androidx.compose.material3.Surface(modifier = Modifier.fillMaxSize()) {
+                androidx.compose.material3.Surface(modifier = Modifier.fillMaxSize(), color = androidx.compose.ui.graphics.Color(0xFF0B0E14)) {
                     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
                     var isPromptShowing by remember { mutableStateOf(false) }
                     var pinNeeded by remember { mutableStateOf(false) }
@@ -652,6 +660,15 @@ class MainActivity : FragmentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    fun setSecureScreen(enabled: Boolean) {
+        getSharedPreferences("rootx_security", MODE_PRIVATE).edit().putBoolean("secure_screen", enabled).apply()
+        if (enabled) {
+            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
         }
     }
 

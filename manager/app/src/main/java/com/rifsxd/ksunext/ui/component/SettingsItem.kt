@@ -73,7 +73,7 @@ fun SwitchItem(
             }
         },
         trailingContent = {
-            Switch(
+            Switch(colors = com.rifsxd.ksunext.ui.component.iosSwitchColors(),
                 checked = checked,
                 enabled = enabled,
                 onCheckedChange = onCheckedChange,

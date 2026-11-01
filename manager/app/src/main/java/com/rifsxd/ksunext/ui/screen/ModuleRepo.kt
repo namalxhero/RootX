@@ -299,7 +299,7 @@ fun ModuleRepoScreen(navigator: DestinationsNavigator) {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Switch(
+                        Switch(colors = com.rifsxd.ksunext.ui.component.iosSwitchColors(),
                             checked = nonFreeEnabled,
                             onCheckedChange = { enabled ->
                                 nonFreeEnabled = enabled

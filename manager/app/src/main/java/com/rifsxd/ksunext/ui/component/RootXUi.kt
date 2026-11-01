@@ -68,6 +68,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rifsxd.ksunext.R
+import com.rifsxd.ksunext.ui.theme.Midnight
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlinx.coroutines.delay
@@ -75,18 +76,13 @@ import kotlinx.coroutines.delay
 val RootXCyan = Color(0xFF3CC8FF)
 val RootXIce = Color(0xFFBFF0FF)
 
-/** Frosted glass surface: translucent gradient fill and a soft light border. */
-fun Modifier.glass(shape: Shape = RoundedCornerShape(24.dp)): Modifier = this
+/** Midnight Glass surface: translucent gradient fill, 1dp border, inset highlight and soft 3D shadows. */
+fun Modifier.glass(shape: Shape = RoundedCornerShape(Midnight.CardRadius)): Modifier = this
+    .softShadow(shape)
     .clip(shape)
-    .background(
-        Brush.linearGradient(listOf(Color(0x24FFFFFF), Color(0x0AFFFFFF))),
-        shape
-    )
-    .border(
-        1.dp,
-        Brush.linearGradient(listOf(Color(0x55FFFFFF), Color(0x14FFFFFF))),
-        shape
-    )
+    .background(Midnight.glassFill, shape)
+    .border(1.dp, Midnight.GlassBorder, shape)
+    .innerHighlight(shape)
 
 enum class XBoomMood { Open, Happy, Scared, Sleepy }
 
@@ -235,18 +231,20 @@ fun XLoader(modifier: Modifier = Modifier, label: String = "Flying in...") {
 /** Five anime pictures plus five drawn themes. The chosen one is remembered and drawn behind the whole app. */
 object RootXBg {
     val drawables = listOf(R.drawable.bg_fireworks, R.drawable.bg_ocean, R.drawable.bg_snow, R.drawable.bg_field, R.drawable.bg_fuji)
-    val names = listOf("Fireworks", "Ocean", "Snow", "Field", "Fuji", "Sakura", "Sunset", "System", "Monarch", "Gate")
-    private val scrims = listOf(0.25f, 0.3f, 0.3f, 0.5f, 0.35f, 0.1f, 0.1f, 0.05f, 0.05f, 0.05f)
+    val names = listOf("Fireworks", "Ocean", "Snow", "Field", "Fuji", "Sakura", "Sunset", "System", "Monarch", "Gate", "Midnight")
+    private val scrims = listOf(0.25f, 0.3f, 0.3f, 0.5f, 0.35f, 0.1f, 0.1f, 0.05f, 0.05f, 0.05f, 0f)
     private val accents = listOf(
         Color(0xFF4FD0FF), Color(0xFF4FD0FF), Color(0xFF4FD0FF), Color(0xFF4FD0FF), Color(0xFF4FD0FF),
-        Color(0xFFFF8FB8), Color(0xFFFFE08A), Color(0xFF4DA3FF), Color(0xFFB58BFF), Color(0xFF3DF0E0)
+        Color(0xFFFF8FB8), Color(0xFFFFE08A), Color(0xFF4DA3FF), Color(0xFFB58BFF), Color(0xFF3DF0E0), Midnight.Accent
     )
+    val MIDNIGHT = 10
     val previews = listOf(
         listOf(Color(0xFF3A1B3F), Color(0xFFC77FA6)),
         listOf(Color(0xFF2B1055), Color(0xFFF59E6B)),
         listOf(Color(0xFF02040A), Color(0xFF4DA3FF)),
         listOf(Color(0xFF05030D), Color(0xFFB58BFF)),
-        listOf(Color(0xFF020A12), Color(0xFF3DF0E0))
+        listOf(Color(0xFF020A12), Color(0xFF3DF0E0)),
+        listOf(Midnight.BgTop, Midnight.BgBottom)
     )
     var index by mutableIntStateOf(0)
     private var loaded = false
@@ -256,7 +254,7 @@ object RootXBg {
 
     fun load(c: android.content.Context) {
         if (!loaded) {
-            index = c.getSharedPreferences("rootx_ui", android.content.Context.MODE_PRIVATE).getInt("bg", 0).coerceIn(0, names.size - 1)
+            index = c.getSharedPreferences("rootx_ui", android.content.Context.MODE_PRIVATE).getInt("bg", MIDNIGHT).coerceIn(0, names.size - 1)
             loaded = true
         }
     }
@@ -334,7 +332,9 @@ fun RootXBackdrop(modifier: Modifier = Modifier) {
     RootXBg.load(context)
     Box(modifier.fillMaxSize().background(Color(0xFF0B1033))) {
         Crossfade(targetState = RootXBg.index, animationSpec = tween(500), label = "bg") { i ->
-            if (i < RootXBg.drawables.size) {
+            if (i == RootXBg.MIDNIGHT) {
+                Box(Modifier.fillMaxSize().background(Midnight.background))
+            } else if (i < RootXBg.drawables.size) {
                 Image(
                     painter = painterResource(RootXBg.drawables[i]),
                     contentDescription = null,
@@ -367,7 +367,7 @@ fun RootXBackgroundPicker() {
     val context = LocalContext.current
     RootXBg.load(context)
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
-        listOf("Background" to (0..4), "Themes" to (5..9)).forEach { (title, range) ->
+        listOf("Background" to (0..4), "Themes" to (5..10)).forEach { (title, range) ->
             Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Text(
                 if (title == "Background") "Pick a scene for the whole app" else "Drawn themes with their own accent colour",
@@ -378,7 +378,7 @@ fun RootXBackgroundPicker() {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
                 range.forEach { i ->
                     val sel = RootXBg.index == i
-                    val bubble by animateDpAsState(if (sel) 64.dp else 54.dp, label = "bubble")
+                    val bubble by animateDpAsState(if (sel) 56.dp else 48.dp, label = "bubble")
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {

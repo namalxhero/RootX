@@ -86,7 +86,7 @@ import kotlinx.coroutines.withContext
 private fun ToolCard(title: String, subtitle: String, accent: Color? = null, content: @Composable ColumnScope.() -> Unit) {
     var open by rememberSaveable(title) { mutableStateOf(false) }
     Column(
-        Modifier.fillMaxWidth().glass(RoundedCornerShape(24.dp))
+        Modifier.fillMaxWidth().glass(RoundedCornerShape(28.dp))
             .then(if (accent != null) Modifier.border(1.5.dp, accent.copy(alpha = 0.7f), RoundedCornerShape(24.dp)) else Modifier)
     ) {
         Row(
@@ -185,7 +185,7 @@ internal fun TemporaryRootCard(packageName: String, appLabel: String, uid: Int) 
         Modifier
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .fillMaxWidth()
-            .glass(RoundedCornerShape(24.dp))
+            .glass(RoundedCornerShape(28.dp))
             .border(1.5.dp, amber.copy(alpha = 0.6f), RoundedCornerShape(24.dp))
             .padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -298,7 +298,7 @@ internal fun SafeModeSection() {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Switch(checked = on, onCheckedChange = { want ->
+                Switch(colors = com.rifsxd.ksunext.ui.component.iosSwitchColors(), checked = on, onCheckedChange = { want ->
                     scope.launch {
                         if (want) {
                             RootXPresets.saveSnapshot(context, modVm.moduleList.filter { it.enabled }.map { it.id })

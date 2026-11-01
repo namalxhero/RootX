@@ -778,7 +778,7 @@ private fun SusfsLoadBottomSheet(
                 headlineContent = { Text(stringResource(R.string.susfs_auto_load)) },
                 supportingContent = { Text(stringResource(R.string.susfs_auto_load_summary)) },
                 trailingContent = {
-                    Switch(
+                    Switch(colors = com.rifsxd.ksunext.ui.component.iosSwitchColors(),
                         checked = autoLoadEnabled,
                         enabled = !autoLoadUpdating,
                         onCheckedChange = onAutoLoadChanged
@@ -910,7 +910,7 @@ private fun AppSettingsCard(
                         }
                     },
                     trailingContent = {
-                        Switch(
+                        Switch(colors = com.rifsxd.ksunext.ui.component.iosSwitchColors(),
                             checked = requireBiometric,
                             onCheckedChange = onRequireBiometricChange
                         )

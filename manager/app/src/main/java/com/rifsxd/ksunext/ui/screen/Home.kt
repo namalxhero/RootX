@@ -976,7 +976,7 @@ fun WarningCard(
             containerColor = color.copy(alpha = 0.20f),
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
-        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.45f))
+        modifier = Modifier.border(1.dp, color.copy(alpha = 0.45f), RoundedCornerShape(28.dp))
     ) {
         Row(
             modifier = Modifier

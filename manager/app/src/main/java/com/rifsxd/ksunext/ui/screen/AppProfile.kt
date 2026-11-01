@@ -119,6 +119,7 @@ fun AppProfileScreen(
                 .verticalScroll(rememberScrollState()),
             packageName = appInfo.packageName,
             appLabel = appInfo.label,
+            uid = appInfo.uid,
             appIcon = {
                 AsyncImage(
                     model = ImageRequest.Builder(context).data(appInfo.packageInfo).crossfade(true).build(),
@@ -168,6 +169,7 @@ private fun AppProfileInner(
     modifier: Modifier = Modifier,
     packageName: String,
     appLabel: String,
+    uid: Int = 0,
     appIcon: @Composable () -> Unit,
     profile: Natives.Profile,
     onViewTemplate: (id: String) -> Unit = {},
@@ -234,6 +236,7 @@ private fun AppProfileInner(
                             )
                         }
                     }
+                    TemporaryRootCard(packageName, appLabel, uid)
                 } else {
                     val mode = if (profile.nonRootUseDefault) Mode.Default else Mode.Custom
                     ProfileBox(mode, false) {

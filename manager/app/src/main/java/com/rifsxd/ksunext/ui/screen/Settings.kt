@@ -209,6 +209,12 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 )
             }
 
+            com.rifsxd.ksunext.ui.component.RootXSectionLabel("SECURITY TOOLS")
+            SelfCheckSection()
+            SafeModeSection()
+            com.rifsxd.ksunext.ui.component.RootXSectionLabel("MODULES")
+            PresetsSection()
+
             AppSettingsCard(
                 navigator = navigator,
                 prefs = prefs,

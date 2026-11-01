@@ -11,6 +11,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import com.rifsxd.ksunext.ui.component.RootXBg
 
 private val DarkColorScheme = darkColorScheme(
     primary = PRIMARY,
@@ -59,7 +60,8 @@ fun KernelSUTheme(
     amoledMode: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = RootXColorScheme
+    RootXBg.load(LocalContext.current)
+    val colorScheme = RootXColorScheme.copy(primary = RootXBg.accent(), onPrimary = Color(0xFF00121C))
 
     SystemBarStyle(
         darkMode = true

@@ -232,19 +232,31 @@ fun XLoader(modifier: Modifier = Modifier, label: String = "Flying in...") {
     }
 }
 
-/** The five anime backgrounds. The chosen one is remembered and drawn behind the whole app. */
+/** Five anime pictures plus five drawn themes. The chosen one is remembered and drawn behind the whole app. */
 object RootXBg {
     val drawables = listOf(R.drawable.bg_fireworks, R.drawable.bg_ocean, R.drawable.bg_snow, R.drawable.bg_field, R.drawable.bg_fuji)
-    val names = listOf("Fireworks", "Ocean", "Snow", "Field", "Fuji")
-    private val scrims = listOf(0.25f, 0.3f, 0.3f, 0.5f, 0.35f)
+    val names = listOf("Fireworks", "Ocean", "Snow", "Field", "Fuji", "Sakura", "Sunset", "System", "Monarch", "Gate")
+    private val scrims = listOf(0.25f, 0.3f, 0.3f, 0.5f, 0.35f, 0.1f, 0.1f, 0.05f, 0.05f, 0.05f)
+    private val accents = listOf(
+        Color(0xFF4FD0FF), Color(0xFF4FD0FF), Color(0xFF4FD0FF), Color(0xFF4FD0FF), Color(0xFF4FD0FF),
+        Color(0xFFFF8FB8), Color(0xFFFFE08A), Color(0xFF4DA3FF), Color(0xFFB58BFF), Color(0xFF3DF0E0)
+    )
+    val previews = listOf(
+        listOf(Color(0xFF3A1B3F), Color(0xFFC77FA6)),
+        listOf(Color(0xFF2B1055), Color(0xFFF59E6B)),
+        listOf(Color(0xFF02040A), Color(0xFF4DA3FF)),
+        listOf(Color(0xFF05030D), Color(0xFFB58BFF)),
+        listOf(Color(0xFF020A12), Color(0xFF3DF0E0))
+    )
     var index by mutableIntStateOf(0)
     private var loaded = false
 
     fun scrim(): Float = scrims[index.coerceIn(0, scrims.size - 1)]
+    fun accent(): Color = accents[index.coerceIn(0, accents.size - 1)]
 
     fun load(c: android.content.Context) {
         if (!loaded) {
-            index = c.getSharedPreferences("rootx_ui", android.content.Context.MODE_PRIVATE).getInt("bg", 0).coerceIn(0, drawables.size - 1)
+            index = c.getSharedPreferences("rootx_ui", android.content.Context.MODE_PRIVATE).getInt("bg", 0).coerceIn(0, names.size - 1)
             loaded = true
         }
     }
@@ -255,64 +267,152 @@ object RootXBg {
     }
 }
 
+/** A drawn theme: gradient sky, glow and slowly drifting particles. theme is 0..4 (Sakura, Sunset, System, Monarch, Gate). */
+@Composable
+fun RootXThemeScene(theme: Int, modifier: Modifier = Modifier) {
+    val t = rememberInfiniteTransition(label = "scene")
+    val phase by t.animateFloat(0f, 1f, infiniteRepeatable(tween(26000, easing = LinearEasing)), label = "phase")
+    val seeds = remember { List(46) { i -> Triple(((i * 97) % 100) / 100f, 1 + (i % 2), ((i * 31) % 100) / 100f) } }
+    Canvas(modifier.fillMaxSize()) {
+        val w = size.width
+        val h = size.height
+        val d = density
+        val pColor: Color
+        val falling: Boolean
+        when (theme) {
+            0 -> {
+                drawRect(Brush.verticalGradient(listOf(Color(0xFF3A1B3F), Color(0xFF7B3F73), Color(0xFFC77FA6))))
+                drawCircle(Brush.radialGradient(listOf(Color(0x55FFB6D1), Color.Transparent), Offset(w * 0.5f, h * 0.15f), w * 0.9f), w * 0.9f, Offset(w * 0.5f, h * 0.15f))
+                pColor = Color(0xFFFFB6D1); falling = true
+            }
+            1 -> {
+                drawRect(Brush.verticalGradient(listOf(Color(0xFF2B1055), Color(0xFF6B2C8E), Color(0xFFD4507A), Color(0xFFF59E6B))))
+                drawCircle(Color(0x66FFD27A), 70f * d, Offset(w * 0.72f, h * 0.4f))
+                val hill = Path().apply {
+                    moveTo(0f, h); lineTo(0f, h * 0.84f); lineTo(w * 0.22f, h * 0.76f); lineTo(w * 0.42f, h * 0.83f)
+                    lineTo(w * 0.65f, h * 0.74f); lineTo(w * 0.85f, h * 0.82f); lineTo(w, h * 0.78f); lineTo(w, h); close()
+                }
+                drawPath(hill, Color(0xCC3A1558))
+                pColor = Color(0xFFFFE9C7); falling = false
+            }
+            2 -> {
+                drawRect(Color(0xFF02040A))
+                var gx = 0f
+                while (gx < w) { drawLine(Color(0x1A4DA3FF), Offset(gx, 0f), Offset(gx, h), 1f); gx += 28f * d }
+                var gy = 0f
+                while (gy < h) { drawLine(Color(0x1A4DA3FF), Offset(0f, gy), Offset(w, gy), 1f); gy += 28f * d }
+                drawCircle(Brush.radialGradient(listOf(Color(0x664DA3FF), Color.Transparent), Offset(w * 0.5f, 0f), w), w, Offset(w * 0.5f, 0f))
+                pColor = Color(0xFF4DA3FF); falling = false
+            }
+            3 -> {
+                drawRect(Color(0xFF05030D))
+                drawCircle(Brush.radialGradient(listOf(Color(0x66A06BFF), Color.Transparent), Offset(w * 0.5f, h * 0.22f), w * 0.9f), w * 0.9f, Offset(w * 0.5f, h * 0.22f))
+                drawCircle(Brush.radialGradient(listOf(Color(0x556E3CDC), Color.Transparent), Offset(w * 0.5f, h), w), w, Offset(w * 0.5f, h))
+                pColor = Color(0xFFB58BFF); falling = false
+            }
+            else -> {
+                drawRect(Brush.verticalGradient(listOf(Color(0xFF020A12), Color(0xFF04131F), Color(0xFF02080F))))
+                drawCircle(Brush.radialGradient(listOf(Color(0x553DF0E0), Color.Transparent), Offset(w * 0.5f, h * 0.26f), w * 0.9f), w * 0.9f, Offset(w * 0.5f, h * 0.26f))
+                listOf(94f to 0.9f, 78f to 0.5f, 62f to 0.35f).forEach { (r, a) ->
+                    drawCircle(Color(0xFF3DF0E0).copy(alpha = a), r * d, Offset(w * 0.5f, h * 0.26f), style = Stroke(width = 2f * d))
+                }
+                pColor = Color(0xFF3DF0E0); falling = false
+            }
+        }
+        seeds.forEach { (sx, sp, so) ->
+            val prog = (phase * sp + so) % 1f
+            val y = if (falling) prog * h else (1f - prog) * h
+            val x = sx * w + sin((phase * sp + so) * 6.2832f) * 14f * d
+            drawCircle(pColor.copy(alpha = 0.75f), (1.2f + so * 2.2f) * d, Offset(x, y))
+        }
+    }
+}
+
 @Composable
 fun RootXBackdrop(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     RootXBg.load(context)
     Box(modifier.fillMaxSize().background(Color(0xFF0B1033))) {
         Crossfade(targetState = RootXBg.index, animationSpec = tween(500), label = "bg") { i ->
-            Image(
-                painter = painterResource(RootXBg.drawables[i]),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
+            if (i < RootXBg.drawables.size) {
+                Image(
+                    painter = painterResource(RootXBg.drawables[i]),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                RootXThemeScene(i - RootXBg.drawables.size)
+            }
         }
         Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = RootXBg.scrim())))
     }
 }
 
-/** Five liquid-glass bubbles for picking the app background (lives in Settings > Customization). */
+/** Small caps heading that groups settings cards. */
+@Composable
+fun RootXSectionLabel(text: String) {
+    Text(
+        text,
+        modifier = Modifier.padding(start = 6.dp, top = 4.dp),
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+}
+
+/** Liquid-glass bubbles for picking the app background or theme (lives in Settings > Customization). */
 @Composable
 fun RootXBackgroundPicker() {
     val context = LocalContext.current
     RootXBg.load(context)
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
-        Text("Background", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        Text("Pick a scene for the whole app", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(14.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-            RootXBg.drawables.forEachIndexed { i, res ->
-                val sel = RootXBg.index == i
-                val bubble by animateDpAsState(if (sel) 64.dp else 54.dp, label = "bubble")
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                        RootXBg.set(context, i)
-                    }
-                ) {
-                    Box(
-                        Modifier
-                            .size(bubble)
-                            .clip(CircleShape)
-                            .border(if (sel) 2.dp else 1.dp, if (sel) RootXCyan else Color(0x80FFFFFF), CircleShape)
+        listOf("Background" to (0..4), "Themes" to (5..9)).forEach { (title, range) ->
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(
+                if (title == "Background") "Pick a scene for the whole app" else "Drawn themes with their own accent colour",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(14.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
+                range.forEach { i ->
+                    val sel = RootXBg.index == i
+                    val bubble by animateDpAsState(if (sel) 64.dp else 54.dp, label = "bubble")
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                            RootXBg.set(context, i)
+                        }
                     ) {
-                        Image(painterResource(res), contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                         Box(
-                            Modifier.fillMaxSize().background(
-                                Brush.radialGradient(listOf(Color(0x99FFFFFF), Color.Transparent), center = Offset(24f, 20f), radius = 70f)
+                            Modifier
+                                .size(bubble)
+                                .clip(CircleShape)
+                                .border(if (sel) 2.dp else 1.dp, if (sel) RootXBg.accent() else Color(0x80FFFFFF), CircleShape)
+                        ) {
+                            if (i < RootXBg.drawables.size) {
+                                Image(painterResource(RootXBg.drawables[i]), contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                            } else {
+                                Box(Modifier.fillMaxSize().background(Brush.linearGradient(RootXBg.previews[i - RootXBg.drawables.size])))
+                            }
+                            Box(
+                                Modifier.fillMaxSize().background(
+                                    Brush.radialGradient(listOf(Color(0x99FFFFFF), Color.Transparent), center = Offset(24f, 20f), radius = 70f)
+                                )
                             )
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            RootXBg.names[i],
+                            fontSize = 10.sp,
+                            color = if (sel) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal
                         )
                     }
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        RootXBg.names[i],
-                        fontSize = 10.sp,
-                        color = if (sel) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal
-                    )
                 }
             }
+            Spacer(Modifier.height(18.dp))
         }
     }
 }

@@ -6,6 +6,9 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -79,39 +82,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@Destination<RootGraph>
 @Composable
-fun ToolsScreen(navigator: DestinationsNavigator) {
-    Box(Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp, bottom = 130.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                XBoom(Modifier.height(58.dp), mood = XBoomMood.Happy, bob = true)
-                Spacer(Modifier.width(14.dp))
-                Column {
-                    Text("Tools", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                    Text("RootX extras", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            SelfCheckSection()
-            RootTimerSection()
-            PresetsSection()
-            SafeModeSection()
-        }
-    }
-}
-
-@Composable
-private fun ToolCard(title: String, subtitle: String, content: @Composable ColumnScope.() -> Unit) {
+private fun ToolCard(title: String, subtitle: String, accent: Color? = null, content: @Composable ColumnScope.() -> Unit) {
     var open by rememberSaveable(title) { mutableStateOf(false) }
-    Column(Modifier.fillMaxWidth().glass(RoundedCornerShape(24.dp))) {
+    Column(
+        Modifier.fillMaxWidth().glass(RoundedCornerShape(24.dp))
+            .then(if (accent != null) Modifier.border(1.5.dp, accent.copy(alpha = 0.7f), RoundedCornerShape(24.dp)) else Modifier)
+    ) {
         Row(
             Modifier.fillMaxWidth().clickable { open = !open }.padding(18.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -147,7 +124,7 @@ private fun RebootDialog(show: Boolean, onDismiss: () -> Unit) {
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun SelfCheckSection() {
+internal fun SelfCheckSection() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var results by remember { mutableStateOf<List<CheckResult>>(emptyList()) }
@@ -191,79 +168,66 @@ private fun HourStepper(label: String, hour: Int, onChange: (Int) -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun RootTimerSection() {
+internal fun TemporaryRootCard(packageName: String, appLabel: String, uid: Int) {
     val context = LocalContext.current
-    val suVm: SuperUserViewModel = viewModel()
+    val amber = Color(0xFFFFB454)
     var tick by remember { mutableIntStateOf(0) }
-    var selected by remember { mutableStateOf<SuperUserViewModel.AppInfo?>(null) }
-    var menu by remember { mutableStateOf(false) }
+    var preset by remember { mutableStateOf(RootPreset.Full) }
     var startH by remember { mutableIntStateOf(22) }
     var endH by remember { mutableIntStateOf(6) }
     var message by remember { mutableStateOf("") }
-    var preset by remember { mutableStateOf(RootPreset.Full) }
+    val temp = remember(tick) { RootTimer.listTemps(context).firstOrNull { it.pkg == packageName } }
+    val win = remember(tick) { RootTimer.listWindows(context).firstOrNull { it.pkg == packageName } }
 
-    LaunchedEffect(Unit) {
-        if (Natives.isManager && suVm.appList.isEmpty()) suVm.fetchAppList()
-    }
-
-    ToolCard("Temporary and scheduled root", "Root that switches off by itself") {
-        if (!Natives.isManager) {
-            Text("Needs RootX to be active first.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else {
-            Box {
-                OutlinedButton(onClick = { menu = true }) { Text(selected?.label ?: "Choose an app") }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    suVm.appList.take(200).forEach { app ->
-                        DropdownMenuItem(text = { Text(app.label) }, onClick = { selected = app; menu = false })
-                    }
-                }
+    Column(
+        Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .fillMaxWidth()
+            .glass(RoundedCornerShape(24.dp))
+            .border(1.5.dp, amber.copy(alpha = 0.6f), RoundedCornerShape(24.dp))
+            .padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text("Temporary root", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text("Root that switches off by itself for $appLabel", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Profile", style = MaterialTheme.typography.labelLarge)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            RootPreset.values().forEach { pr ->
+                FilterChip(selected = preset == pr, onClick = { preset = pr }, label = { Text(pr.label) })
             }
-            val app = selected
-            Text("Profile:", style = MaterialTheme.typography.labelLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                RootPreset.values().forEach { pr ->
-                    FilterChip(selected = preset == pr, onClick = { preset = pr }, label = { Text(pr.label) })
-                }
-            }
-            Text("Apply it for:", style = MaterialTheme.typography.labelLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("10 min" to 10, "1 hour" to 60, "Today" to RootTimer.minutesUntilMidnight()).forEach { (t, m) ->
-                    OutlinedButton(enabled = app != null, onClick = {
-                        if (app != null) {
-                            val ok = RootTimer.grantTemporary(context, app.packageName, app.uid, m, preset)
-                            message = if (ok) "${preset.label} set for ${app.label} for $t" else "Could not change the profile"
-                            tick++
-                        }
-                    }) { Text(t) }
-                }
-            }
-            Text("Or only during these hours, every day:", style = MaterialTheme.typography.labelLarge)
-            HourStepper("From", startH) { startH = it }
-            HourStepper("To", endH) { endH = it }
-            Button(enabled = app != null, onClick = {
-                if (app != null) {
-                    RootTimer.addWindow(context, app.packageName, app.uid, startH, endH)
-                    message = "Daily window saved for ${app.label}"
+        }
+        Text("Apply it for", style = MaterialTheme.typography.labelLarge)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("10 min" to 10, "1 hour" to 60, "24 hours" to 1440, "Today" to RootTimer.minutesUntilMidnight()).forEach { (t, m) ->
+                OutlinedButton(onClick = {
+                    val ok = RootTimer.grantTemporary(context, packageName, uid, m, preset)
+                    message = if (ok) "${preset.label} set for $t" else "Could not change the profile"
                     tick++
-                }
-            }) { Text("Save daily window") }
-            if (message.isNotEmpty()) Text(message, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
-
-            val temps = remember(tick) { RootTimer.listTemps(context) }
-            val wins = remember(tick) { RootTimer.listWindows(context) }
-            temps.forEach { t ->
-                val left = ((t.until - System.currentTimeMillis()) / 60000).coerceAtLeast(0)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("${t.pkg}\n${left} min left", Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-                    TextButton(onClick = { RootTimer.revokeNow(context, t.pkg); tick++ }) { Text("Revoke") }
-                }
+                }) { Text(t) }
             }
-            wins.forEach { w ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("${w.pkg}\n%02d:00 to %02d:00 daily".format(w.startHour, w.endHour), Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-                    TextButton(onClick = { RootTimer.removeWindow(context, w.pkg); tick++ }) { Text("Remove") }
-                }
+        }
+        Text("Or only during these hours, every day", style = MaterialTheme.typography.labelLarge)
+        HourStepper("From", startH) { startH = it }
+        HourStepper("To", endH) { endH = it }
+        Button(onClick = {
+            RootTimer.addWindow(context, packageName, uid, startH, endH)
+            message = "Daily window saved"
+            tick++
+        }) { Text("Save daily window") }
+        if (message.isNotEmpty()) Text(message, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+        temp?.let { t ->
+            val left = ((t.until - System.currentTimeMillis()) / 60000).coerceAtLeast(0)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Temporary root: $left min left", Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+                TextButton(onClick = { RootTimer.revokeNow(context, packageName); tick++ }) { Text("Revoke") }
+            }
+        }
+        win?.let { w ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("%02d:00 to %02d:00 daily".format(w.startHour, w.endHour), Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+                TextButton(onClick = { RootTimer.removeWindow(context, packageName); tick++ }) { Text("Remove") }
             }
         }
     }
@@ -272,7 +236,7 @@ private fun RootTimerSection() {
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun PresetsSection() {
+internal fun PresetsSection() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val modVm: ModuleViewModel = viewModel()
@@ -312,7 +276,7 @@ private fun PresetsSection() {
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun SafeModeSection() {
+internal fun SafeModeSection() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val modVm: ModuleViewModel = viewModel()
@@ -321,7 +285,7 @@ private fun SafeModeSection() {
 
     LaunchedEffect(Unit) { if (Natives.isManager) modVm.fetchModuleList() }
 
-    ToolCard("Safe mode", "Switch every module off until you turn it back on") {
+    ToolCard("Safe mode", "Switch every module off until you turn it back on", accent = Color(0xFFFFB454)) {
         if (!Natives.isManager) {
             Text("Needs RootX to be active first.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {

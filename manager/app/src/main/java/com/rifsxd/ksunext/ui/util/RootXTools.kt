@@ -378,3 +378,39 @@ class RootXBootReceiver : BroadcastReceiver() {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) RootTimer.reschedule(context)
     }
 }
+
+// ---------------------------------------------------------------------------
+// Safe mode: one switch that turns every module off, with or without RootX
+// ---------------------------------------------------------------------------
+
+object RootXSafeMode {
+    private const val SNAP = "/data/adb/rootx_safe_snapshot"
+    private fun prefs(c: Context) = c.getSharedPreferences("rootx_presets", Context.MODE_PRIVATE)
+
+    fun requested(c: Context): Boolean = RootXPresets.safeModeOn(c)
+    fun pending(c: Context): Boolean = prefs(c).getBoolean("safe_pending", false)
+
+    /** Saves the wish and tries to apply it now. False means there was no root yet, so it waits. */
+    fun set(c: Context, on: Boolean): Boolean {
+        RootXPresets.setSafeMode(c, on)
+        val ok = apply(on)
+        prefs(c).edit().putBoolean("safe_pending", !ok).apply()
+        return ok
+    }
+
+    /** Called when the app opens: finishes a switch that was waiting for root. */
+    fun applyPending(c: Context) {
+        if (pending(c) && apply(requested(c))) prefs(c).edit().putBoolean("safe_pending", false).apply()
+    }
+
+    private fun apply(on: Boolean): Boolean = runCatching {
+        if (!com.topjohnwu.superuser.Shell.getShell().isRoot) return@runCatching false
+        val script = if (on) {
+            "for d in /data/adb/modules/*/; do [ -d \"\$d\" ] || continue; id=\$(basename \"\$d\"); " +
+                "if [ ! -e \"\$d/disable\" ]; then echo \"\$id\" >> $SNAP; touch \"\$d/disable\"; fi; done"
+        } else {
+            "if [ -f $SNAP ]; then while read id; do rm -f \"/data/adb/modules/\$id/disable\"; done < $SNAP; rm -f $SNAP; fi"
+        }
+        com.topjohnwu.superuser.Shell.cmd(script).exec().isSuccess
+    }.getOrDefault(false)
+}

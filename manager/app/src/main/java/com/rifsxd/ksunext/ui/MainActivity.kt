@@ -255,6 +255,9 @@ class MainActivity : FragmentActivity() {
         }
 
         val prefsInit = getSharedPreferences("settings", MODE_PRIVATE)
+        if (com.rifsxd.ksunext.ui.util.RootXPin.has(this) && !prefsInit.contains("app_lock_method")) {
+            prefsInit.edit().putString("app_lock_method", "pin").putBoolean("enable_biometric_lock", true).apply()
+        }
         val enableStartupAnimation = false
         val requireBiometric = prefsInit.getBoolean("enable_biometric_lock", false)
 
@@ -574,7 +577,6 @@ class MainActivity : FragmentActivity() {
             }
 
             AppLockOverlay(amoledModeState.value)
-            com.rifsxd.ksunext.ui.component.RootXPinOverlay()
             com.rifsxd.ksunext.ui.component.RootXSplashOverlay()
 
         } } // Box & setContent
@@ -587,6 +589,7 @@ class MainActivity : FragmentActivity() {
                 androidx.compose.material3.Surface(modifier = Modifier.fillMaxSize()) {
                     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
                     var isPromptShowing by remember { mutableStateOf(false) }
+                    var pinNeeded by remember { mutableStateOf(false) }
                     DisposableEffect(lifecycleOwner) {
                         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
                             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
@@ -598,6 +601,11 @@ class MainActivity : FragmentActivity() {
                                         handleIntent(it)
                                         pendingIntent = null
                                     }
+                                    return@LifecycleEventObserver
+                                }
+
+                                if (prefs.getString("app_lock_method", "device") == "pin" && com.rifsxd.ksunext.ui.util.RootXPin.has(this@MainActivity)) {
+                                    pinNeeded = true
                                     return@LifecycleEventObserver
                                 }
 
@@ -629,6 +637,18 @@ class MainActivity : FragmentActivity() {
                         onDispose {
                             lifecycleOwner.lifecycle.removeObserver(observer)
                         }
+                    }
+                    if (pinNeeded) {
+                        androidx.activity.compose.BackHandler { finish() }
+                        com.rifsxd.ksunext.ui.component.RootXPinPrompt(onUnlocked = {
+                            pinNeeded = false
+                            appLockState.value = false
+                            com.rifsxd.ksunext.ui.util.AppLockManager.unlock()
+                            pendingIntent?.let {
+                                handleIntent(it)
+                                pendingIntent = null
+                            }
+                        })
                     }
                 }
             }

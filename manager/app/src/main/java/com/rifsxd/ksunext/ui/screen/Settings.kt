@@ -831,6 +831,8 @@ private fun AppSettingsCard(
                 mutableStateOf(prefs.getLong("app_lock_timeout", 60000L))
             }
             var showTimeoutMenu by remember { mutableStateOf(false) }
+            var lockMethod by rememberSaveable { mutableStateOf(prefs.getString("app_lock_method", "device") ?: "device") }
+            var showPinSetup by remember { mutableStateOf(false) }
 
             val timeoutOptions = remember {
                 listOf(
@@ -844,12 +846,32 @@ private fun AppSettingsCard(
                 ?: R.string.settings_app_lock_timeout_1m
             val timeoutLabel = stringResource(timeoutLabelRes)
             val onRequireBiometricChange: (Boolean) -> Unit = { newValue ->
-                if (newValue && !(context.getSystemService(Context.KEYGUARD_SERVICE) as android.app.KeyguardManager).isDeviceSecure) {
+                if (newValue && lockMethod == "pin" && !com.rifsxd.ksunext.ui.util.RootXPin.has(context)) {
+                    showPinSetup = true
+                } else if (newValue && lockMethod != "pin" && !(context.getSystemService(Context.KEYGUARD_SERVICE) as android.app.KeyguardManager).isDeviceSecure) {
                     Toast.makeText(context, context.getString(R.string.settings_app_lock_no_credential), Toast.LENGTH_SHORT).show()
                 } else {
                     requireBiometric = newValue
                     prefs.edit { putBoolean("enable_biometric_lock", newValue) }
                 }
+            }
+
+            if (showPinSetup) {
+                RootXPinSetupDialog(
+                    hasPin = com.rifsxd.ksunext.ui.util.RootXPin.has(context),
+                    onSaved = {
+                        lockMethod = "pin"
+                        requireBiometric = true
+                        prefs.edit { putString("app_lock_method", "pin"); putBoolean("enable_biometric_lock", true) }
+                        showPinSetup = false
+                    },
+                    onRemoved = {
+                        lockMethod = "device"
+                        prefs.edit { putString("app_lock_method", "device") }
+                        showPinSetup = false
+                    },
+                    onDismiss = { showPinSetup = false }
+                )
             }
 
             ListItem(
@@ -905,6 +927,41 @@ private fun AppSettingsCard(
                                             )
                                         }
                                     }
+                                }
+                                androidx.compose.foundation.layout.Row(
+                                    modifier = Modifier.padding(top = 6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    androidx.compose.material3.FilterChip(
+                                        selected = lockMethod == "device",
+                                        onClick = {
+                                            lockMethod = "device"
+                                            prefs.edit { putString("app_lock_method", "device") }
+                                        },
+                                        label = { Text("Phone lock") }
+                                    )
+                                    androidx.compose.material3.FilterChip(
+                                        selected = lockMethod == "pin",
+                                        onClick = {
+                                            if (com.rifsxd.ksunext.ui.util.RootXPin.has(context)) {
+                                                lockMethod = "pin"
+                                                prefs.edit { putString("app_lock_method", "pin") }
+                                            } else {
+                                                showPinSetup = true
+                                            }
+                                        },
+                                        label = { Text("App PIN") }
+                                    )
+                                }
+                                if (lockMethod == "pin") {
+                                    Text(
+                                        text = if (com.rifsxd.ksunext.ui.util.RootXPin.has(context)) "Change or remove PIN" else "Set PIN",
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier
+                                            .padding(top = 4.dp)
+                                            .clickable { showPinSetup = true }
+                                            .padding(vertical = 4.dp)
+                                    )
                                 }
                             }
                         }

@@ -43,12 +43,6 @@ import com.rifsxd.ksunext.ui.viewmodel.ModuleViewModel
 fun RootXSettingsSection() {
     val context = LocalContext.current
     val modVm: ModuleViewModel = viewModel()
-    var hasPin by remember { mutableStateOf(RootXPin.has(context)) }
-    var showPin by remember { mutableStateOf(false) }
-    var pin1 by remember { mutableStateOf("") }
-    var pin2 by remember { mutableStateOf("") }
-    var pinError by remember { mutableStateOf("") }
-
     LaunchedEffect(Unit) { if (Natives.isManager) modVm.fetchModuleList() }
 
     Text(
@@ -56,19 +50,6 @@ fun RootXSettingsSection() {
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(start = 16.dp, top = 10.dp)
-    )
-
-    ListItem(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .clickable { pin1 = ""; pin2 = ""; pinError = ""; showPin = true },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        leadingContent = { Icon(Icons.Filled.Lock, null) },
-        headlineContent = {
-            Text("PIN lock", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        },
-        supportingContent = { Text(if (hasPin) "On. Tap to change or remove" else "Off. Tap to set a PIN") }
     )
 
     ListItem(
@@ -97,48 +78,54 @@ fun RootXSettingsSection() {
         },
         supportingContent = { Text("Share device and module info when something breaks") }
     )
+}
 
-    if (showPin) {
-        AlertDialog(
-            onDismissRequest = { showPin = false },
-            title = { Text(if (hasPin) "Change PIN" else "Set a PIN") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = pin1,
-                        onValueChange = { pin1 = it.filter { c -> c.isDigit() }.take(8) },
-                        label = { Text("PIN (4 to 8 digits)") },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
-                    )
-                    OutlinedTextField(
-                        value = pin2,
-                        onValueChange = { pin2 = it.filter { c -> c.isDigit() }.take(8) },
-                        label = { Text("Repeat PIN") },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
-                    )
-                    if (pinError.isNotEmpty()) {
-                        Text(pinError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    }
+/** Dialog for setting, changing or removing the App lock PIN. */
+@Composable
+fun RootXPinSetupDialog(hasPin: Boolean, onSaved: () -> Unit, onRemoved: () -> Unit, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    var pin1 by remember { mutableStateOf("") }
+    var pin2 by remember { mutableStateOf("") }
+    var pinError by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (hasPin) "Change PIN" else "Set a PIN") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = pin1,
+                    onValueChange = { pin1 = it.filter { c -> c.isDigit() }.take(8) },
+                    label = { Text("PIN (4 to 8 digits)") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+                )
+                OutlinedTextField(
+                    value = pin2,
+                    onValueChange = { pin2 = it.filter { c -> c.isDigit() }.take(8) },
+                    label = { Text("Repeat PIN") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+                )
+                if (pinError.isNotEmpty()) {
+                    Text(pinError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    when {
-                        pin1.length < 4 -> pinError = "Use at least 4 digits"
-                        pin1 != pin2 -> pinError = "The PINs do not match"
-                        else -> { RootXPin.set(context, pin1); hasPin = true; showPin = false }
-                    }
-                }) { Text("Save") }
-            },
-            dismissButton = {
-                Row2(hasPin, onRemove = { RootXPin.clear(context); hasPin = false; showPin = false }, onCancel = { showPin = false })
             }
-        )
-    }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                when {
+                    pin1.length < 4 -> pinError = "Use at least 4 digits"
+                    pin1 != pin2 -> pinError = "The PINs do not match"
+                    else -> { RootXPin.set(context, pin1); onSaved() }
+                }
+            }) { Text("Save") }
+        },
+        dismissButton = {
+            Row2(hasPin, onRemove = { RootXPin.clear(context); onRemoved() }, onCancel = onDismiss)
+        }
+    )
 }
 
 @Composable

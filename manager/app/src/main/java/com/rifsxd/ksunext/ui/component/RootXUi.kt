@@ -476,12 +476,10 @@ fun RootXSplashOverlay() {
 }
 
 
-/** Full-screen PIN prompt, shown at launch when a PIN has been set in Tools. */
+/** Full-screen PIN pad used by App lock when the lock method is App PIN. */
 @Composable
-fun RootXPinOverlay() {
+fun RootXPinPrompt(onUnlocked: () -> Unit) {
     val context = LocalContext.current
-    var unlocked by rememberSaveable { mutableStateOf(!RootXPin.has(context)) }
-    if (unlocked) return
     var entered by remember { mutableStateOf("") }
     var wrong by remember { mutableStateOf(false) }
     val need = RootXPin.length(context)
@@ -491,7 +489,7 @@ fun RootXPinOverlay() {
         entered += d
         wrong = false
         if (entered.length == need) {
-            if (RootXPin.check(context, entered)) unlocked = true else { wrong = true; entered = "" }
+            if (RootXPin.check(context, entered)) onUnlocked() else { wrong = true; entered = "" }
         }
     }
 

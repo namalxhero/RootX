@@ -187,8 +187,9 @@ fun XLoader(modifier: Modifier = Modifier, label: String = "Flying in...") {
                     drawOval(Color(0xE6FFFFFF), Offset(x, y), Size(54.dp.toPx(), 13.dp.toPx()))
                     drawOval(Color(0xE6FFFFFF), Offset(x + 14.dp.toPx(), y - 6.dp.toPx()), Size(30.dp.toPx(), 15.dp.toPx()))
                 }
+                val bobPx = 5.dp.toPx()
                 withTransform({
-                    translate(left = w * 0.46f, top = h * 0.62f + bob * 5.dp.toPx())
+                    translate(left = w * 0.46f, top = h * 0.62f + bob * bobPx)
                     rotate(degrees = -14f + bob * 2f, pivot = Offset.Zero)
                 }) {
                     val wing = Path().apply {

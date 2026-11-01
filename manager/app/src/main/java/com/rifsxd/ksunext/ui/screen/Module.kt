@@ -1185,7 +1185,7 @@ fun ModuleItem(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End,
                         ) {
-                            Switch(
+                            Switch(colors = com.rifsxd.ksunext.ui.component.iosSwitchColors(),
                                 enabled = !module.update && !module.remove,
                                 checked = module.enabled,
                                 onCheckedChange = onCheckChanged,

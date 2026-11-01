@@ -28,6 +28,7 @@ import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.Color
 import com.rifsxd.ksunext.ui.component.XBoom
 import com.rifsxd.ksunext.ui.component.XBoomMood
+import com.rifsxd.ksunext.ui.component.GlassNavBar
 import com.rifsxd.ksunext.ui.component.glass
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -836,11 +837,9 @@ private fun BottomBar(
                 val itemSpacingPx = with(density) { itemSpacing.toPx() }
                 val containerPaddingPx = with(density) { containerPadding.toPx() }
 
-                Box(
+                GlassNavBar(
                     modifier = Modifier
                         .width(navBarWidth)
-                        .height(72.dp)
-                        .glass(RoundedCornerShape(34.dp))
                         .pointerInput(visibleDestinations, effectiveSelectedIndex, isRtl) {
                             detectDragGestures(
                                 onDragStart = { offset ->
@@ -913,14 +912,14 @@ private fun BottomBar(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .requiredSize(itemSize + 6.dp)
+                                        .requiredSize(46.dp)
                                         .background(
-                                            brush = androidx.compose.ui.graphics.Brush.radialGradient(
-                                                listOf(Color(0x80FFFFFF), Color(0x1AFFFFFF), Color(0x663CC8FF))
+                                            brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                                                listOf(Color(0x38FFFFFF), Color(0x0FFFFFFF))
                                             ),
                                             shape = androidx.compose.foundation.shape.CircleShape
                                         )
-                                        .border(1.dp, Color(0x66FFFFFF), androidx.compose.foundation.shape.CircleShape)
+                                        .border(1.dp, Color(0x40FFFFFF), androidx.compose.foundation.shape.CircleShape)
                                 )
                             }
                         }

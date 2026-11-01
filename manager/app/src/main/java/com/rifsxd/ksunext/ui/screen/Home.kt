@@ -4,6 +4,8 @@ import com.rifsxd.ksunext.ui.component.RootXBackdrop
 import com.rifsxd.ksunext.ui.component.XBoom
 import com.rifsxd.ksunext.ui.component.XBoomMood
 import com.rifsxd.ksunext.ui.component.glass
+import com.rifsxd.ksunext.ui.component.IosSwitch
+import com.rifsxd.ksunext.ui.component.InsetIconWell
 import androidx.core.net.toUri
 import androidx.compose.foundation.Image
 import androidx.compose.ui.platform.LocalUriHandler
@@ -284,24 +286,24 @@ fun HomeScreen(navigator: DestinationsNavigator) {
 @Composable
 private fun SuperuserCard(onClick: (() -> Unit)? = null) {
     val count = getSuperuserCount()
-    ElevatedCard(
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ),
+    Box(
         modifier = Modifier
-            .height(IntrinsicSize.Min)
+            .fillMaxSize()
+            .glass(RoundedCornerShape(28.dp))
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
+                .padding(horizontal = 12.dp, vertical = 18.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                InsetIconWell(androidx.compose.material.icons.Icons.Filled.AdminPanelSettings)
+                Spacer(Modifier.height(12.dp))
                 Text(
                     text = if (count <= 1) {
                         stringResource(R.string.home_superuser_count_singular)
@@ -344,24 +346,24 @@ private fun ModuleCard(onClick: (() -> Unit)? = null) {
         }
     }
 
-    ElevatedCard(
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ),
+    Box(
         modifier = Modifier
-            .height(IntrinsicSize.Min)
+            .fillMaxSize()
+            .glass(RoundedCornerShape(28.dp))
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
+                .padding(horizontal = 12.dp, vertical = 18.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                InsetIconWell(androidx.compose.material.icons.Icons.Filled.Layers)
+                Spacer(Modifier.height(12.dp))
                 Text(
                     text = if (count <= 1) {
                         stringResource(R.string.home_module_count_singular)
@@ -969,9 +971,12 @@ fun WarningCard(
     message: String, color: Color = MaterialTheme.colorScheme.error, onClick: (() -> Unit)? = null
 ) {
     ElevatedCard(
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = color
-        )
+            containerColor = color.copy(alpha = 0.20f),
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.45f))
     ) {
         Row(
             modifier = Modifier
@@ -1535,13 +1540,13 @@ private fun RootXHero(ksuVersion: Int?, lkmMode: Boolean?, onInstall: () -> Unit
         verticalAlignment = Alignment.CenterVertically
     ) {
         XBoom(
-            Modifier.height(92.dp),
+            Modifier.height(80.dp),
             mood = if (working) XBoomMood.Happy else XBoomMood.Scared,
             blink = false,
             bob = true
         )
         Spacer(Modifier.width(16.dp))
-        Column {
+        Column(Modifier.weight(1f)) {
             Text(
                 text = if (working) "Working" else "Not installed",
                 style = MaterialTheme.typography.headlineSmall,
@@ -1559,6 +1564,9 @@ private fun RootXHero(ksuVersion: Int?, lkmMode: Boolean?, onInstall: () -> Unit
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        Spacer(Modifier.width(12.dp))
+        // Status indicator only: it mirrors `working`, tapping it does nothing new.
+        IosSwitch(checked = working, onCheckedChange = null)
     }
 }
 
@@ -1566,7 +1574,7 @@ private fun RootXHero(ksuVersion: Int?, lkmMode: Boolean?, onInstall: () -> Unit
 private fun RootXTile(label: String, value: String, modifier: Modifier = Modifier) {
     Column(
         modifier
-            .glass(RoundedCornerShape(20.dp))
+            .glass(RoundedCornerShape(28.dp))
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

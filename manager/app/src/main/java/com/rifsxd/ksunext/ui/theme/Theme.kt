@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -36,20 +38,27 @@ fun Color.blend(other: Color, ratio: Float): Color {
 }
 
 private val RootXColorScheme = darkColorScheme(
-    primary = Color(0xFF4FD0FF), onPrimary = Color(0xFF00121C),
-    primaryContainer = Color(0xFF123A5C), onPrimaryContainer = Color(0xFFCDF1FF),
-    secondary = Color(0xFF8FE3FF), onSecondary = Color(0xFF00121C),
-    secondaryContainer = Color(0xFF1C3A63), onSecondaryContainer = Color(0xFFD9F4FF),
-    tertiary = Color(0xFFC3A4FF), onTertiary = Color(0xFF1B0F33),
+    primary = Midnight.Accent, onPrimary = Color(0xFF0B1230),
+    primaryContainer = Color(0xFF2C3556), onPrimaryContainer = Color(0xFFDCE4FF),
+    secondary = Color(0xFFB4C2F2), onSecondary = Color(0xFF0B1230),
+    secondaryContainer = Color(0x24FFFFFF), onSecondaryContainer = Midnight.Text,
+    tertiary = Color(0xFFC3B6FF), onTertiary = Color(0xFF1B0F33),
     tertiaryContainer = Color(0xFF38285F), onTertiaryContainer = Color(0xFFEADFFF),
-    background = Color.Transparent, onBackground = Color(0xFFEEF3FF),
-    surface = Color(0xFF0E1538), onSurface = Color(0xFFEEF3FF),
-    surfaceVariant = Color(0xFF1B2452), onSurfaceVariant = Color(0xFFA9B6DD),
-    surfaceContainerLowest = Color(0xFF0C1232), surfaceContainerLow = Color(0xFF151D47),
-    surfaceContainer = Color(0xFF1A2352), surfaceContainerHigh = Color(0xFF202A5E),
-    surfaceContainerHighest = Color(0x2EFFFFFF),
-    outline = Color(0xFF4A5A94), outlineVariant = Color(0xFF2A3566),
+    background = Color.Transparent, onBackground = Midnight.Text,
+    surface = Color(0xFF12151F), onSurface = Midnight.Text,
+    surfaceVariant = Color(0xFF232838), onSurfaceVariant = Midnight.TextSecondary,
+    surfaceContainerLowest = Color(0xFF0C0E16), surfaceContainerLow = Color(0xFF181C2A),
+    surfaceContainer = Color(0xFF1C2130), surfaceContainerHigh = Color(0xFF232839),
+    surfaceContainerHighest = Color(0x24FFFFFF),
+    outline = Color(0xFF4A5170), outlineVariant = Color(0x24FFFFFF),
     error = Color(0xFFFF7B8A), errorContainer = Color(0xFF4A1A2C), onErrorContainer = Color(0xFFFFC2CA)
+)
+
+private val MidnightShapes = Shapes(
+    small = RoundedCornerShape(16.dp),
+    medium = RoundedCornerShape(Midnight.CardRadius),
+    large = RoundedCornerShape(Midnight.CardRadius),
+    extraLarge = RoundedCornerShape(32.dp)
 )
 
 @Composable
@@ -70,6 +79,7 @@ fun KernelSUTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = MidnightShapes,
         content = content
     )
 }

@@ -280,31 +280,42 @@ internal fun PresetsSection() {
 internal fun SafeModeSection() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val amber = Color(0xFFFFB454)
     var on by remember { mutableStateOf(RootXSafeMode.requested(context)) }
     var waiting by remember { mutableStateOf(RootXSafeMode.pending(context)) }
     var showReboot by remember { mutableStateOf(false) }
 
-    ToolCard("Safe mode", "Switch every module off until you turn it back on", accent = Color(0xFFFFB454)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(if (on) "Safe mode is ON" else "Safe mode is off", fontWeight = FontWeight.SemiBold)
-                Text(
-                    if (waiting) "Waiting for root. It will apply as soon as root is available."
-                    else if (on) "All modules stay off. Turn this off to bring them back."
-                    else "Turning it on switches all modules off.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Switch(colors = com.rifsxd.ksunext.ui.component.iosSwitchColors(), checked = on, onCheckedChange = { want ->
-                on = want
-                scope.launch {
-                    val ok = withContext(Dispatchers.IO) { RootXSafeMode.set(context, want) }
-                    waiting = !ok
-                    if (ok) showReboot = true
-                }
-            })
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) { RootXSafeMode.applyPending(context) }
+        waiting = RootXSafeMode.pending(context)
+    }
+
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .glass(RoundedCornerShape(24.dp))
+            .border(1.5.dp, amber.copy(alpha = 0.7f), RoundedCornerShape(24.dp))
+            .padding(horizontal = 18.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text("Safe mode", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(
+                if (waiting) "Waiting for root. It applies as soon as root is available."
+                else if (on) "All modules are off. Turn this off to bring them back."
+                else "Switch every module off in one tap",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
+        Switch(colors = com.rifsxd.ksunext.ui.component.iosSwitchColors(), checked = on, onCheckedChange = { want ->
+            on = want
+            scope.launch {
+                val ok = withContext(Dispatchers.IO) { RootXSafeMode.set(context, want) }
+                waiting = !ok
+                if (ok) showReboot = true
+            }
+        })
     }
     RebootDialog(showReboot) { showReboot = false }
 }

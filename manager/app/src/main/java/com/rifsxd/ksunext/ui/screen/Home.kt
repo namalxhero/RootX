@@ -228,8 +228,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 }
             }
 
-            SafeModeCard()
-
             val currentVersionCode = getManagerVersion(context).second
             val requiresNewKernel = isManager && kernelUAPIVersion != null && managerUAPIVersion > kernelUAPIVersion
             val requiresNewManager = isManager && kernelUAPIVersion != null && managerUAPIVersion < kernelUAPIVersion
@@ -283,52 +281,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             Spacer(Modifier)
         }
     }
-    }
-}
-
-@Composable
-private fun SafeModeCard() {
-    val context = LocalContext.current
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    var on by remember { mutableStateOf(com.rifsxd.ksunext.ui.util.RootXSafeMode.requested(context)) }
-    var waiting by remember { mutableStateOf(com.rifsxd.ksunext.ui.util.RootXSafeMode.pending(context)) }
-    var showReboot by remember { mutableStateOf(false) }
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.rifsxd.ksunext.ui.util.RootXSafeMode.applyPending(context) }
-        waiting = com.rifsxd.ksunext.ui.util.RootXSafeMode.pending(context)
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .glass(RoundedCornerShape(28.dp))
-            .padding(horizontal = 20.dp, vertical = 18.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text("Safe mode", style = MaterialTheme.typography.titleLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold)
-            Text(
-                if (waiting) "Waiting for root to apply" else if (on) "All modules are off" else "Modules follow their own switch",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        com.rifsxd.ksunext.ui.component.IosSwitch(checked = on, onCheckedChange = { want ->
-            on = want
-            scope.launch {
-                val ok = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.rifsxd.ksunext.ui.util.RootXSafeMode.set(context, want) }
-                waiting = !ok
-                if (ok) showReboot = true
-            }
-        })
-    }
-    if (showReboot) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { showReboot = false },
-            title = { Text("Reboot needed") },
-            text = { Text("Module changes apply after a reboot. Reboot now?") },
-            confirmButton = { androidx.compose.material3.TextButton(onClick = { showReboot = false; com.rifsxd.ksunext.ui.util.reboot() }) { Text("Reboot") } },
-            dismissButton = { androidx.compose.material3.TextButton(onClick = { showReboot = false }) { Text("Later") } }
-        )
     }
 }
 
